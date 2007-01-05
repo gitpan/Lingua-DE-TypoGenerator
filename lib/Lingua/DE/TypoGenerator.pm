@@ -6,9 +6,10 @@ use constant LDT_VCHARSETS => ( 'ISO-8859-1' ); #, 'ISO-8859-15', 'UTF-8' );
 use constant LDT_DEFCHARSET => 'ISO-8859-1';
 use constant LDT_KEYBOARDLAY => ( '1234567890', 'qwertzuiopü', 'asdfghjklöä', 'yxcvbnm' );
 use vars qw($VERSION @ISA @EXPORT);
+require 5.8.0;
 
 BEGIN {
-	$VERSION = '0.1';
+	$VERSION = '0.2';
 
 	use Exporter;
 	@ISA = qw(Exporter);
@@ -27,7 +28,7 @@ sub new {
 	# Check charset
 	my $v_charset = 0;
 	foreach my $ccharset (LDT_VCHARSETS) {
-		if ($self->{'charset'} eq $ccharset) {
+		if ($self->{'charset'} and $self->{'charset'} eq $ccharset) {
 			$v_charset = 1;
 		}
 	}
@@ -101,12 +102,12 @@ sub _typo_twistchars {
 
 	my @typos = ();
 
-	for (my $i = 0; $i < length($word); $i++) {
+	for (my $i = 0; $i < length($word) - 1; $i++) {
 		my @c = split //, $word;
 		my $b = $c[$i];
 		$c[$i] = $c[$i + 1];
 		$c[$i + 1] = $b;
-		push @typos, join('', @c);
+		push @typos, join('', @c) unless $#c < 0;
 	}
 
 	return @typos;
@@ -138,7 +139,7 @@ sub _typo_misskeys {
 
 			for (my $col = $ki - 1; $col <= $ki + 1; $col+=2) {
 				next if $col < 0;
-				next if $col > length($kblay[$line]);
+				next if $ki > length($kblay[$line]);
 
 				push @typos, substr($word, 0, $i).substr($kblay[$line], $ki, 1).substr($word, $i + 1);
 			}
